@@ -1,51 +1,56 @@
-LIB := libft.a
+NAME := libasm.a
+TEST := test
 
 # **************************************************************************** #
 
 SRC_DIR := src
-
-# **************************************************************************** #
-
-
-
-# **************************************************************************** #
-
-INC_DIRS := include \
-            include/internal \
-            include/internal/printf
-
-# **************************************************************************** #
-
 OBJ_DIR := obj
 
-OBJ := $(addprefix $(OBJ_DIR)/, $(COMPLEX_OBJ) \
-                                $(CTYPE_OBJ) \
-                                $(LIST_OBJ) \
-                                $(MATH_OBJ) \
-                                $(STDIO_OBJ) \
-                                $(STDLIB_OBJ) \
-                                $(STRING_OBJ) \
-                                $(VECTOR_OBJ))
+# **************************************************************************** #
 
-DEP := $(addprefix $(OBJ_DIR)/, $(COMPLEX_DEP) \
-                                $(CTYPE_DEP) \
-                                $(LIST_DEP) \
-                                $(MATH_DEP) \
-                                $(STDIO_DEP) \
-                                $(STDLIB_DEP) \
-                                $(STRING_DEP) \
-                                $(VECTOR_DEP))
+SRC := ft_read.s \
+       ft_strcmp.s \
+       ft_strcpy.s \
+       ft_strdup.s \
+       ft_strlen.s \
+       ft_write.s
+
+OBJ := $(addprefix $(OBJ_DIR)/, $(SRC:.s=.o))
 
 # **************************************************************************** #
+
+SRC_BONUS := ft_atoi_base_bonus.s \
+             ft_list_push_front_bonus.s \
+             ft_list_remove_if_bonus.s \
+             ft_list_size_bonus.s \
+             ft_list_sort_bonus.s
+
+OBJ_BONUS := $(addprefix $(OBJ_DIR)/, $(SRC_BONUS:.s=.o))
+
+# **************************************************************************** #
+
+SRC_TEST := main.c
+
+OBJ_TEST := $(addprefix $(OBJ_DIR)/, $(SRC_TEST:.c=.o))
+
+# **************************************************************************** #
+
+INC_DIRS := include
+
+# **************************************************************************** #
+
+ASM := nasm
 
 UNAME_S := $(shell uname -s)
 
 ifeq ($(UNAME_S), Darwin)
     CC := clang
+    AFLAGS := -f macho64
 endif
 
 ifeq ($(UNAME_S), Linux)
     CC := gcc
+    AFLAGS := -f elf64
 endif
 
 # **************************************************************************** #
@@ -54,6 +59,10 @@ CFLAGS += -Wall -Wextra -Werror \
           $(addprefix -I , $(INC_DIRS)) \
           -MMD \
           -O2 -march=native -ftree-vectorize -pipe
+
+ifdef BONUS
+    CFLAGS += -DBONUS
+endif
 
 # **************************************************************************** #
 
@@ -68,105 +77,43 @@ WHITE   := \033[0;37m
 
 # **************************************************************************** #
 
-.PHONY: all clean fclean re
+.PHONY: all bonus clean fclean re
 
 # **************************************************************************** #
 
 all:
-	@$(MAKE) $(LIB)
+	@$(MAKE) $(NAME)
 
 # **************************************************************************** #
 
-$(LIB): $(OBJ)
+$(NAME): $(OBJ)
 	@printf "$(BLUE)"
 	ar -cr $@ $?
 	ranlib $@
 	@printf "$(RESET)"
 
-# **************************************************************************** #
+bonus: $(OBJ_BONUS)
+	@printf "$(BLUE)"
+	ar -cr $(NAME) $?
+	ranlib $(NAME)
+	@printf "$(RESET)"
 
-$(OBJ_DIR)/$(COMPLEX_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(COMPLEX_DIR)/%.o: $(SRC_DIR)/$(COMPLEX_DIR)/%.c | $(OBJ_DIR)/$(COMPLEX_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
+$(TEST): $(OBJ_TEST)
+	@printf "$(GREEN)"
+	$(CC) -L . -lasm $^ -o $(TEST)
 	@printf "$(RESET)"
 
 # **************************************************************************** #
 
-$(OBJ_DIR)/$(CTYPE_DIR):
+$(OBJ_DIR):
 	@mkdir -p $@
 
-$(OBJ_DIR)/$(CTYPE_DIR)/%.o: $(SRC_DIR)/$(CTYPE_DIR)/%.c | $(OBJ_DIR)/$(CTYPE_DIR)
+$(OBJ_DIR)/%.o: $(SRC_DIR)/%.s | $(OBJ_DIR)
 	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(ASM) $(AFLAGS) $< -o $@
 	@printf "$(RESET)"
 
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(LIST_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(LIST_DIR)/%.o: $(SRC_DIR)/$(LIST_DIR)/%.c | $(OBJ_DIR)/$(LIST_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(MATH_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(MATH_DIR)/%.o: $(SRC_DIR)/$(MATH_DIR)/%.c | $(OBJ_DIR)/$(MATH_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(STDIO_DIR)/$(PRINTF_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(STDIO_DIR)/$(PRINTF_DIR)/%.o: $(SRC_DIR)/$(STDIO_DIR)/$(PRINTF_DIR)/%.c | $(OBJ_DIR)/$(STDIO_DIR)/$(PRINTF_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-$(OBJ_DIR)/$(STDIO_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(STDIO_DIR)/%.o: $(SRC_DIR)/$(STDIO_DIR)/%.c | $(OBJ_DIR)/$(STDIO_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(STDLIB_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(STDLIB_DIR)/%.o: $(SRC_DIR)/$(STDLIB_DIR)/%.c | $(OBJ_DIR)/$(STDLIB_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(STRING_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(STRING_DIR)/%.o: $(SRC_DIR)/$(STRING_DIR)/%.c | $(OBJ_DIR)/$(STRING_DIR)
-	@printf "$(MAGENTA)"
-	$(CC) $(CFLAGS) -c $< -o $@
-	@printf "$(RESET)"
-
-# **************************************************************************** #
-
-$(OBJ_DIR)/$(VECTOR_DIR):
-	@mkdir -p $@
-
-$(OBJ_DIR)/$(VECTOR_DIR)/%.o: $(SRC_DIR)/$(VECTOR_DIR)/%.c | $(OBJ_DIR)/$(VECTOR_DIR)
+$(OBJ_DIR)/%.o: %.c | $(OBJ_DIR)
 	@printf "$(MAGENTA)"
 	$(CC) $(CFLAGS) -c $< -o $@
 	@printf "$(RESET)"
@@ -179,12 +126,12 @@ $(OBJ_DIR)/$(VECTOR_DIR)/%.o: $(SRC_DIR)/$(VECTOR_DIR)/%.c | $(OBJ_DIR)/$(VECTOR
 
 clean:
 	@printf "$(RED)"
-	rm -rf $(OBJ_DIR)
+	rm -rf $(OBJ_DIR) *.txt
 	@printf "$(RESET)"
 
 fclean: clean
 	@printf "$(RED)"
-	rm -f $(LIB)
+	rm -f $(NAME) $(TEST)
 	@printf "$(RESET)"
 
 re: fclean all
