@@ -57,3 +57,8 @@ dkms.conf
 # CLion
 .idea/
 cmake-build-debug/
+
+# Project
+42libasm_tester/
+*.txt
+test
