@@ -12,9 +12,9 @@ _ft_strdup:
     push    rdi         ; save s
     mov     rdi, rax    ; prepare argument for malloc
     call    _malloc     ; allocate new string
+    pop     rsi         ; src = s
     test    rax, rax    ; if malloc failed
     je      .return     ; return NULL
-    pop     rsi         ; src = s
     mov     rdi, rax    ; dst = malloc(i)
     call    _ft_strcpy  ; ft_strcpy(dst, src)
 .return:
